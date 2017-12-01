@@ -1,7 +1,6 @@
 package jp.sonicgarden.socialchange
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
@@ -90,8 +89,8 @@ class MainActivity : AppCompatActivity() {
                     textViewTitle.text = it.title
                     textViewDate.text = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN).format(it.date)
 
-                    linearLayoutRow.setOnClickListener {
-                        context.startActivity(Intent(context, BlogPostActivity::class.java))
+                    linearLayoutRow.setOnClickListener { _ ->
+                        context.startActivity(BlogPostActivity.newIntent(context, it.id))
                     }
                 }
             }

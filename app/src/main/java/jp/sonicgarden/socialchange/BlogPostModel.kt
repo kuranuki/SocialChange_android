@@ -10,6 +10,9 @@ import java.util.*
 open class BlogPostModel : RealmObject() {
 
     companion object {
+        fun find(realm: Realm, id: String) =
+                realm.where(BlogPostModel::class.java).equalTo(BlogPostModel::id.name, id).findFirst()
+
         fun findAll(realm: Realm, sort: Sort = Sort.DESCENDING): RealmResults<BlogPostModel> =
                 realm.where(BlogPostModel::class.java).findAll().sort(BlogPostModel::date.name, sort)
     }
