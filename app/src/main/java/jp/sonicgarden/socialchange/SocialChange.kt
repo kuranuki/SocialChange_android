@@ -44,15 +44,14 @@ object SocialChange {
     }
 
     fun getPosts(page: Int = 1,
-                onSuccess: () -> Unit, onError: (e: Throwable) -> Unit) {
+                onSuccess: (totalPages: Int) -> Unit, onError: (e: Throwable) -> Unit) {
 
         getApi().getPosts(page)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ list ->
-
+                .subscribe({ response ->
                     Realm.getDefaultInstance().use { realm ->
-                        list.forEach { post ->
+                        response.body()?.forEach { post ->
                             realm.executeTransaction {
                                 val blogPostModel = BlogPostModel().apply {
                                     id = post.id
@@ -65,7 +64,7 @@ object SocialChange {
                             }
                         }
                     }
-                    onSuccess()
+                    onSuccess(response.headers().get("X-WP-TotalPages")!!.toInt())
                 }, { error ->
                     onError(error)
                 })

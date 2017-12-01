@@ -38,14 +38,28 @@ class MainActivity : AppCompatActivity() {
             it.adapter = adapter
         }
 
-        SocialChange.getPosts(1, {
-            val blogPostList = BlogPostModel.findAll(realm)
-            if (blogPostList.isNotEmpty()) adapter.updateData(blogPostList)
-
+        SocialChange.getPosts(1, { totalPages ->
+            updateView()
             Toast.makeText(this, "成功", Toast.LENGTH_SHORT).show()
+
+            if (totalPages > 1) {
+                (2..totalPages).forEach {
+                    SocialChange.getPosts(it, {
+                        updateView()
+                    }, {error ->
+                        Log.v("kuranuki", error.toString())
+                    })
+                }
+            }
+
         }, { error ->
             Log.v("kuranuki", error.toString())
         })
+    }
+
+    private fun updateView() {
+        val blogPostList = BlogPostModel.findAll(realm)
+        if (blogPostList.isNotEmpty()) adapter.updateData(blogPostList)
     }
 
     override fun onDestroy() {
