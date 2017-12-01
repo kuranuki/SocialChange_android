@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import io.realm.Realm
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     class BlogPostViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewTitle: TextView = view.textViewTitle
         val textViewDate: TextView = view.textViewDate
+        val linearLayoutRow: LinearLayout = view.linearLayoutRow
     }
 
     class BlogPostAdapter : RealmRecyclerViewAdapter<BlogPostModel, BlogPostViewHolder>(null, true) {
@@ -84,6 +86,10 @@ class MainActivity : AppCompatActivity() {
                 holder?.apply {
                     textViewTitle.text = it.title
                     textViewDate.text = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN).format(it.date)
+
+                    linearLayoutRow.setOnClickListener {
+                        Log.v("kuranuki", "*************")
+                    }
                 }
             }
         }
