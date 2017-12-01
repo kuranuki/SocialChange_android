@@ -1,5 +1,7 @@
 package jp.sonicgarden.socialchange
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
@@ -29,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         realm = Realm.getDefaultInstance()
-        adapter = BlogPostAdapter()
+        adapter = BlogPostAdapter(this)
 
         recyclerViewBlogPost.let {
             val linearLayoutManager = LinearLayoutManager(this)
@@ -74,7 +76,8 @@ class MainActivity : AppCompatActivity() {
         val linearLayoutRow: LinearLayout = view.linearLayoutRow
     }
 
-    class BlogPostAdapter : RealmRecyclerViewAdapter<BlogPostModel, BlogPostViewHolder>(null, true) {
+    class BlogPostAdapter(private val context: Context)
+        : RealmRecyclerViewAdapter<BlogPostModel, BlogPostViewHolder>(null, true) {
 
         override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): BlogPostViewHolder {
             val inflater = LayoutInflater.from(parent?.context)
@@ -88,7 +91,7 @@ class MainActivity : AppCompatActivity() {
                     textViewDate.text = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN).format(it.date)
 
                     linearLayoutRow.setOnClickListener {
-                        Log.v("kuranuki", "*************")
+                        context.startActivity(Intent(context, BlogPostActivity::class.java))
                     }
                 }
             }
