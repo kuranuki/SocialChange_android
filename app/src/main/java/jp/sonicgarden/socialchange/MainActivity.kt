@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         SocialChange.loadPosts(realm, {
             val blogPostList = BlogPostModel.findAll(realm)
             if (blogPostList.isNotEmpty()) adapter.updateData(blogPostList)
+            progressBar.visibility = View.GONE
         })
     }
 
