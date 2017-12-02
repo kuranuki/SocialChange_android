@@ -3,10 +3,13 @@ package jp.sonicgarden.socialchange
 import android.util.Log
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import io.reactivex.Single
+import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import okhttp3.OkHttpClient
+import org.jsoup.Jsoup
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -28,45 +31,49 @@ object SocialChange {
             .build()
             .create(SocialChangeApi::class.java)
 
-    fun getPost(id: String,
-                onSuccess: () -> Unit, onError: (e: Throwable) -> Unit) {
-
-        getApi().getPost(id)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ postResponse ->
-                    // TODO:
-                    Log.v("kuranuki", postResponse.toString())
-                    onSuccess()
-                }, { error ->
-                    onError(error)
-                })
-    }
-
-    fun getPosts(page: Int = 1,
-                onSuccess: (totalPages: Int) -> Unit, onError: (e: Throwable) -> Unit) {
-
+    fun loadPosts(realm: Realm, onSuccess: () -> Unit, page: Int = 1) {
         getApi().getPosts(page)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ response ->
-                    Realm.getDefaultInstance().use { realm ->
-                        response.body()?.forEach { post ->
-                            realm.executeTransaction {
-                                val blogPostModel = BlogPostModel().apply {
-                                    id = post.id
-                                    date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.JAPAN).parse(post.date)
-                                    link = post.link
-                                    title = post.title.rendered
-                                    content = post.content.rendered
-                                }
-                                realm.copyToRealmOrUpdate(blogPostModel)
-                            }
-                        }
-                    }
-                    onSuccess(response.headers().get("X-WP-TotalPages")!!.toInt())
+                    storeBlogPosts(realm, response.body())
+
+                    val totalPages = response.headers().get("X-WP-TotalPages")!!.toInt()
+                    if (page < totalPages) loadPosts(realm, onSuccess, page + 1) else onSuccess()
                 }, { error ->
-                    onError(error)
+                    Log.v("socialchange", error.toString())
+                })
+    }
+
+    private fun storeBlogPosts(realm: Realm, list: List<SocialChangeApi.PostResponse>?) {
+        list?.forEach { post ->
+            realm.executeTransaction {
+                val blogPostModel = BlogPostModel().apply {
+                    id = post.id
+                    date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.JAPAN).parse(post.date)
+                    link = post.link
+                    title = post.title.rendered
+                    content = post.content.rendered
+                }
+                realm.copyToRealmOrUpdate(blogPostModel)
+            }
+        }
+    }
+
+    private fun loadOgpImage(blogPostModel: BlogPostModel) {
+        Single.create(SingleOnSubscribe<String> { emitter ->
+            val url = Jsoup.connect(blogPostModel.link)
+                    .get()
+                    .select("meta[property=og:image]")
+                    .attr("content")
+            emitter.onSuccess(url)
+        })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ imageUrl ->
+                    blogPostModel.imageUrl = imageUrl
+                }, {
+                    // noop
                 })
     }
 }

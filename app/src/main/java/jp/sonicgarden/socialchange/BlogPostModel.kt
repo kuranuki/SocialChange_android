@@ -23,4 +23,5 @@ open class BlogPostModel : RealmObject() {
     open var link: String = ""
     open var title: String = ""
     open var content: String = ""
+    open var imageUrl: String = ""
 }
