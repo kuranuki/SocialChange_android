@@ -24,6 +24,7 @@
         android:layout_gravity="bottom"
         android:layout_weight="1"
         android:gravity="bottom"
-        android:text="2017/3/21" />
+        android:text="2017/3/21"
+        android:textAlignment="textEnd" />
 
 </LinearLayout>
